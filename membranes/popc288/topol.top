@@ -1,0 +1,21 @@
+#include "amber99sb-ildn-berger.ff/forcefield.itp"
+
+; lipid topology
+#include "amber99sb-ildn-berger.ff/popc.itp"
+
+; Include water topology - the Berger lipids are optimized for SPC
+#include "amber99sb-ildn-berger.ff/spc.itp"
+
+[ system ]
+; Name
+Small POPC membrane
+
+[ molecules ]
+; Compound        #mols
+POPC              288
+SOL              17280
+
+
+
+
+

@@ -23,28 +23,10 @@ def pdb2gmx(pdb_structure,options,protonationStates=None,protonationSelections=N
     if (protonationSelections and protonationStates):
         protSel = shlex.split(protonationSelections)
         args = args+protSel
-        p = subprocess.Popen(args,stdin=subprocess.PIPE)
-        p.communicate(input=protonationStates)
-        ret = p.returncode
+        executeInteractiveCommand(args,protonationSelections)
     else:
-        print " ".join(args)
-        ret = subprocess.call(args)
+        executeCommand(args)
 
-    #we have an error
-    if ret:
-        print "Error when doing pdb2gmx check the console output for further info"
-        exit(1)
-
-    else:
-        print "Successfully called command:"
-
-        cmd = " ".join(args)
-        if(protonationStates and protonationSelections):
-            # the r prefix prints the string as a raw string and repr ensures the string
-            #var is a raw string
-            cmd = r"""echo -e %s | %s"""%(repr(protonationStates),cmd)
-
-        print cmd
     return
 
 
@@ -76,30 +58,28 @@ def genbox(pdb_structure,options):
     args = ["genbox", "-cp",pdb_structure,"-cs","spc216"]
     opts = shlex.split(options)
     args = args+opts
-    ret = subprocess.call(args)
+    executeCommand(args)
 
-    #we have an error
-    if ret:
-        print "Error when doing genbox check the console output for further info"
-        exit(1)
-
-    else:
-        print "Successfully called command:"
-        cmd = " ".join(args)
-        print cmd
     return
 
 
-def updateMembraneCount(type,numLipids,topology):
+def updateMembraneCount(type,membraneFile,topology):
     '''
       appends the number of lipids to the topology file
+
+      NOTE: expecting membrane file to be a gro file!
     '''
+
+    args = ['grep','-c',"%s     P"%type,membraneFile]
+    numLipids = executeCommand(args).rstrip() #rstrip removes new lines
 
     str = "%s        %s\n"%(type,numLipids)
 
     versionFile(topology)
     with open(topology,"a") as f:
         f.write(str)
+
+    logCommand("Updated number of %s lipids to %s in %s "%(type,numLipids,topology))
 
 def updateWaterAndIonCount(pdb_structure,topology):
     '''
@@ -125,6 +105,7 @@ def updateWaterAndIonCount(pdb_structure,topology):
     with open(topology) as f:
         topologyStr = f.read()
 
+    logStr =''
     for elem in toCount:
         #does the element exist?
         if(toCount[elem]>0):
@@ -137,6 +118,7 @@ def updateWaterAndIonCount(pdb_structure,topology):
                 topologyStr =  w.sub(newStr,topologyStr)
             else: #append a string to the toplogyStr
                 topologyStr = topologyStr+newStr
+            logStr += newStr
 
 
     #backup old topology
@@ -144,32 +126,16 @@ def updateWaterAndIonCount(pdb_structure,topology):
     with open(topology,"w") as f:
         f.write(topologyStr)
 
-    print "Successfully updated topology"
+    logCommand("Updated topology %s with %s"%(topology,logStr))
 
 
-#if we do not find it the toplogy file has never been updated
-    #alter the toplogy file
+def grompp(pdb_structure,mdp_file,topology="topol.top",output="topol.tpr",options=""):
+    args = ["grompp","-f",mdp_file,"-c",pdb_structure,"-p",topology,"-o",output]+shlex.split(options)
+
+    executeCommand(args)
 
 
-def grompp(pdb_structure,mdp_file,topology,output=topol.tpr):
-    args = ["grompp","-f",mdp_file,"-c",pdb_structure,"-p",topology,"-o",output]
-
-    ret = subprocess.call(args)
-
-    if ret:
-        print "Error when doing genbox check the console output for further info"
-        exit(1)
-
-    else:
-        print "Successfully called command:"
-        cmd = " ".join(args)
-        print cmd
-
-
-
-
-
-def genIon(topology,tpr, options):
+def genIon(topology, options,pdb_structure,solventGroup=15):
     '''
         adds 0.1 mMolar of NACL and ensures the charges are neutral
          it updates the water and NACL counts in the topology
@@ -180,21 +146,18 @@ def genIon(topology,tpr, options):
         inputs:
             pdb_structure :String(filename) a pdb file
             topology:String(filename) a top file
+            solventGroup:int The group of continous solvent molecules that we can replace with ions
+                            default is 15=SOL
     '''
 
-    args = ["genion","-conc","0.1","-neutral","-s",tpr,"-p",topology ]
+
+    mdpDummy,tprDummy=generateDummyMdpAndTpr(pdb_structure,topology)
+    args = ["genion","-conc","0.1","-neutral","-s",tprDummy,"-p",topology ]
     opts = shlex.split(options)
     args= args+opts
-    ret = subprocess.call(args)
+    executeInteractiveCommand(args,"%s \n"%solventGroup)
 
-    if ret:
-        print "Error when doing genion check the console output for further info"
-        exit(1)
-
-    else:
-        print "Successfully called command:"
-        cmd = " ".join(args)
-        print cmd
+    deleteTprAndMdpDummy()
 
 
 def mergePdb(file,fileToMerge):
@@ -221,27 +184,18 @@ def mergePdb(file,fileToMerge):
         str = "".join(lines[1:4]) + toMerge +'\n'+ "".join(lines[4:])
         f.write(str)
 
+    logCommand("Merged the pdb files %s %s"%(file,fileToMerge))
 
-def translateProtein(pdb_structure,translationVectorString,options):
-    args=["editconf","-f",pdb_structure,"-n","index.ndx","-translate",translationVectorString]
+
+def translateProtein(pdb_structure,translationVectorString,options,indexFile="index.ndx"):
+    args=["editconf","-f",pdb_structure,"-n",indexFile,"-translate"] +shlex.split(translationVectorString)
     opts = shlex.split(options)
     args = args+opts
 
-    p = subprocess.Popen(args,stdin=subprocess.PIPE)
-    p.communicate(input="1\n0\n")  #assuming selection 1 means protein
-    ret = p.returncode
+    executeInteractiveCommand(args,"1\n0\n")
 
 
-    if ret:
-        print "Error when doing editconf check the console output for further info"
-        exit(1)
-
-    else:
-        print "Successfully called command:"
-        cmd = " ".join(args)
-        print cmd
-
-def centerProtein(selectionNum,pdb_structure,topology="topol.top",output="centered.gro"):
+def centerProtein(selectionNum,pdb_structure,topology="topol.top",output="centered.gro",indexFile="index.ndx"):
     """
     Centers the protein in the box.
 
@@ -251,22 +205,14 @@ def centerProtein(selectionNum,pdb_structure,topology="topol.top",output="center
     """
 
     #first we need a dummy mdp
-    mdpDummy = "grompp_dummy.mdp"
-    tprDummy = "tprdummy.tpr"
-
-    args = ["touch",mdpDummy]
-    executeCommand(args)
-
-    grompp(pdb_structure,mdpDummy,topology,tprDummy)
+    mdpDummy,tprDummy=generateDummyMdpAndTpr(pdb_structure,topology)
 
     args = ["trjconv","-f",pdb_structure,"-o",output,"-center","-pbc","mol"
-            ,"-ur","compact","-n","index.ndx","-s",tprDummy]
+            ,"-ur","compact","-n",indexFile,"-s",tprDummy]
 
-    p = subprocess.Popen(args,stdin=subprocess.PIPE)
-    p.communicate(input="%s \n 0"%selectionNum)
+    executeInteractiveCommand(args,"%s \n 0"%selectionNum)
 
-    args = ["rm","grompp_dummy.mdp"]
-    executeCommand(args)
+    deleteTprAndMdpDummy()
 
 
 
@@ -282,14 +228,59 @@ def extractPDBcolumns(numColumns,input):
 
 
 def executeCommand(args):
-    ret = subprocess.call(args)
 
-    if ret:
-        print "Error when executing command %s, please check the console output for further info"%(" ".join(args))
+    try:
+        ret = subprocess.check_output(args)
+        logCommand(" ".join(args))
+
+        #we want to show this info on the terminal
+        print ret
+
+        return ret
+    except subprocess.CalledProcessError as e:
+        print "Error when executing command %s\nCheck the console output for further info"%(" ".join(args))
         exit(1)
 
+
+
 def executeInteractiveCommand(args,interactions):
-    pass
+
+    p = subprocess.Popen(args,stdin=subprocess.PIPE)
+
+    out,err = p.communicate(input=interactions)
+    ret = p.returncode
+
+    cmd = "echo -e %s | %s"%(repr(interactions)," ".join(args))
+    if ret:
+        print "Error when executing the command %s\nCheck the console output for further info"%cmd
+        exit(1)
+    else:
+        logCommand(cmd)
+        return out
+
+
+
+def generateDummyMdpAndTpr(pdb_structure,topology):
+    mdpDummy = "grompp_dummy.mdp"
+    tprDummy = "tprdummy.tpr"
+
+    args = ["touch",mdpDummy]
+    executeCommand(args)
+
+    grompp(pdb_structure,mdpDummy,topology,tprDummy)
+
+    return (mdpDummy,tprDummy)
+
+
+def deleteTprAndMdpDummy():
+    cmd = "rm grompp_dummy.mdp tprdummy.tpr"
+    executeCommand(shlex.split(cmd))
 
 def logCommand(str):
-    pass
+    '''
+    appends a string to a README file
+    '''
+    with open("README",'a') as f:
+        f.write(str)
+        f.write("\n\n")
+
