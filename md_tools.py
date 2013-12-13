@@ -2,6 +2,7 @@ import re
 import shlex
 import subprocess
 from versionFile import *
+from pdb_util import *
 
 
 def pdb2gmx(pdb_structure,options,protonationStates=None,protonationSelections=None):
@@ -170,11 +171,7 @@ def mergePdb(file,fileToMerge):
 
     with open(file,"r") as f:
         lines = f.readlines()
-        with open(fileToMerge) as merge:
-            str = merge.read()
-            #find all lines starting with ATOM
-            w = re.compile("^ATOM.*",re.MULTILINE)
-            toMerge =  "\n".join(w.findall(str))
+        toMerge = findAllAtomLines(fileToMerge)
 
 
     #backup the file
@@ -283,4 +280,9 @@ def logCommand(str):
     with open("README",'a') as f:
         f.write(str)
         f.write("\n\n")
+
+
+
+
+
 
