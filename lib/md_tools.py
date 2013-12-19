@@ -1,8 +1,8 @@
 import re
 import shlex
 import subprocess
-from versionFile import *
-from pdb_util import *
+from lib.versionFile import *
+from lib.pdb_util import *
 
 
 def pdb2gmx(pdb_structure,options,protonationStates=None,protonationSelections=None):
@@ -76,9 +76,23 @@ def updateMembraneCount(type,membraneFile,topology):
 
     str = "%s        %s\n"%(type,numLipids)
 
+    regex =r"%s        \d*"%type
     versionFile(topology)
-    with open(topology,"a") as f:
-        f.write(str)
+
+    w= re.compile(regex)
+
+    with open(topology,"r") as f:
+        topologyStr = f.read()
+
+    m = w.search(topologyStr)
+    if(m):
+        topologyStr = re.sub(m.group(0),str.rstrip("\n"),topologyStr)
+    else:
+        topologyStr = topologyStr+str
+
+    with open(topology,"w") as f:
+        f.write(topologyStr)
+
 
     logCommand("Updated number of %s lipids to %s in %s "%(type,numLipids,topology))
 
@@ -184,15 +198,17 @@ def mergePdb(file,fileToMerge):
     logCommand("Merged the pdb files %s %s"%(file,fileToMerge))
 
 
-def translateProtein(pdb_structure,translationVectorString,options,indexFile="index.ndx"):
-    args=["editconf","-f",pdb_structure,"-n",indexFile,"-translate"] +shlex.split(translationVectorString)
+def translateProtein(pdb_structure,translationVectorString,options,indexFile=None):
+    args=["editconf","-f",pdb_structure,"-translate"]+shlex.split(translationVectorString)
+    if indexFile:
+        args+=["-n",indexFile]
     opts = shlex.split(options)
     args = args+opts
 
     executeInteractiveCommand(args,"1\n0\n")
 
 
-def centerProtein(selectionNum,pdb_structure,topology="topol.top",output="centered.gro",indexFile="index.ndx"):
+def centerProtein(selectionNum,pdb_structure,topology="topol.top",output="centered.gro",indexFile=None):
     """
     Centers the protein in the box.
 
@@ -205,7 +221,9 @@ def centerProtein(selectionNum,pdb_structure,topology="topol.top",output="center
     mdpDummy,tprDummy=generateDummyMdpAndTpr(pdb_structure,topology)
 
     args = ["trjconv","-f",pdb_structure,"-o",output,"-center","-pbc","mol"
-            ,"-ur","compact","-n",indexFile,"-s",tprDummy]
+            ,"-ur","compact","-s",tprDummy]
+    if indexFile:
+        args +=["-n",indexFile]
 
     executeInteractiveCommand(args,"%s \n 0"%selectionNum)
 
@@ -283,6 +301,9 @@ def logCommand(str):
 
 
 
-
+def cleanupBackups():
+    #cleanup gromacs backups
+    cmd = "rm \#*"
+    os.system(cmd)
 
 

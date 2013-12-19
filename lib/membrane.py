@@ -1,6 +1,7 @@
 import os
-from md_tools import *
-from pdb_util import *
+from lib.md_tools import *
+
+pdb2gmxOptions = "-water tip3p -ff amber99sb-ildn -ignh -vsite hydrogen -o %s"
 
 def injectLinesIntoTop(toplogy="topol.top"):
 #inject some lines into the topology file
@@ -23,7 +24,7 @@ def injectLinesIntoTop(toplogy="topol.top"):
                 f.write("""#include "%s/other/amber99sb-ildn-berger.ff/popc.itp\n"""%baseDir)
 
 
-def embedProteinIntoMembrane(proteinPdb,indexFile,centerGroup,membraneSize=288,membraneType='popc'):
+def embedProteinIntoMembrane(proteinPdb,centerGroup,indexFile=None,membraneSize=288,membraneType='popc'):
 
     '''
     embeds a provided protein into a membrane
@@ -41,7 +42,8 @@ def embedProteinIntoMembrane(proteinPdb,indexFile,centerGroup,membraneSize=288,m
 
 
     #1. Do pdb2gmx
-    pdb2gmx(proteinPdb,"-water tip3p -ff amber99sb-ildn -ignh -vsite hydrogen -o conf.pdb")
+    file = "conf.pdb"
+    pdb2gmx(proteinPdb,pdb2gmxOptions%file)
 
 
     '''
@@ -64,7 +66,7 @@ def embedProteinIntoMembrane(proteinPdb,indexFile,centerGroup,membraneSize=288,m
     #3. Merge the membrane file and the protein file
     mergePdb("membrane_water.pdb","conf.pdb")
 
-    #4. Update the top file with itp files for the membrane etc
+    # 4. Update the top file with itp files for the membrane etc
     injectLinesIntoTop("topol.top")
 
     #5. Center the protein on the membrane
@@ -72,7 +74,7 @@ def embedProteinIntoMembrane(proteinPdb,indexFile,centerGroup,membraneSize=288,m
 
     #6. Translate the protein so a bit of it sticks out at the bottom of the membrane
     #FIXME making a rough assumption that protein and membrane is well aligned and we only need to translate by 2nm in z direction
-    translateProtein("membrane_water.pdb","0 0 -2","-o membrane_water.pdb",indexFile=indexFile)
+    translateProtein("membrane_water.pdb","0 0 -1","-o membrane_water.pdb",indexFile=indexFile)
 
     #7. Add ions
     genIon("topol.top","-o membrane_water.pdb","membrane_water.pdb")

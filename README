@@ -1,0 +1,50 @@
+This project contains scripts to automate preparing of ligand gated ion channels.
+
+
+It consists of the following tools
+
+createProject.py
+membed.py
+prepare.py
+run_ems.py
+run_equis.py
+
+
+createProject.py
+==================
+creates a project structure this is the first script to use
+
+
+membed.py
+==================
+embeds a protein into a membrane
+This one takes a while to run and uses g_membed
+After this step you will have a proper topology and structure to simulate
+
+NOTE: after this step you might want to run a manual grompp and make sure everything looks alright
+
+prepare.py
+===================
+If multiple conformation of the same structure is needed use this script.
+It takes the given structures and applies the membrane generated in membed.py.
+this one does not do g_membed but simply concatenates the protein structure with the non protein molecules
+of the structure created by membed.py.
+it also assumes that the topology generated from membed.py is reusable
+
+
+run_ems
+===================
+creates a copernicus workflow and submits all the structures in the confs folder to it
+
+
+run_equis
+===================
+creates a copernicus workflow and submits all the structures in the equis folder to it.
+this conformations should be fetched from the output of the em workflow
+
+
+run
+===================
+creates a copernicus workflow and submits all the structures in the run  folder to it.
+this conformations should be fetched from the output of the equi or the em workflow
+

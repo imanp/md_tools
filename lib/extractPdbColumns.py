@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-from md_tools import *
 import sys
 import copy
+
+from lib.md_tools import *
+
 
 args=copy.copy(sys.argv)
 args.pop(0)

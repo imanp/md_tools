@@ -1,4 +1,4 @@
-from md_tools import *
+from lib.md_tools import *
 
 def findAllAtomLines(pdbFile):
     '''
