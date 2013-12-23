@@ -1,7 +1,11 @@
+import glob
 import os
+from shutil import copyfile
+from glic.protonationStates import ProtonationStates
 from lib.md_tools import *
+from lib.util import ProjectDirectories
 
-pdb2gmxOptions = "-water tip3p -ff amber99sb-ildn -ignh -vsite hydrogen -o %s"
+pdb2gmxOptions = "-ter -water tip3p -ff amber99sb-ildn -ignh -vsite hydrogen -o %s"
 
 def injectLinesIntoTop(toplogy="topol.top"):
 #inject some lines into the topology file
@@ -24,7 +28,7 @@ def injectLinesIntoTop(toplogy="topol.top"):
                 f.write("""#include "%s/other/amber99sb-ildn-berger.ff/popc.itp\n"""%baseDir)
 
 
-def embedProteinIntoMembrane(proteinPdb,centerGroup,indexFile=None,membraneSize=288,membraneType='popc'):
+def embedProteinIntoMembrane(centerGroup,indexFile=None,membraneSize=288,membraneType='popc'):
 
     '''
     embeds a provided protein into a membrane
@@ -41,9 +45,7 @@ def embedProteinIntoMembrane(proteinPdb,centerGroup,indexFile=None,membraneSize=
     membraneDir = "%s/membranes/%s%s"%(baseDir,membraneType,membraneSize)
 
 
-    #1. Do pdb2gmx
-    file = "conf.pdb"
-    pdb2gmx(proteinPdb,pdb2gmxOptions%file)
+
 
 
     '''
@@ -94,27 +96,123 @@ def runMembedSim():
     executeCommand(shlex.split(cmd))
 
 
-def createSystemsFromEmbedded(proteinPdbs):
+
+def createSystemsFromTemplate(args,protonationString=None):
+
+    '''
+        args:ArgumentParser args
     '''
 
-    Extract the non protein part of a system and adds it to each pdb file provided
-    Assuming there is a previously embedded system in the project dir
+    path = os.path.abspath(args.proteins)
 
-    input:proteinPdbs:array
+    os.chdir("confs")
+
+    files = glob.glob(path)
+    print files
+#go to the confs directory
+    filename = "conf%s.pdb"
+    i = 1
+    for protein in files:
+        name = filename%i
+        #note pdb2gmxoptions comes from util.membrane
+
+        #FIXME awful and hacky and not general
+        if(os.path.isfile("../mutate.pml")):
+            copyfile(protein,"protein.pdb")
+            print "Mutating!"
+            cmd ="pymol -c ../mutate.pml"
+            executeCommand(shlex.split(cmd))
+
+            versionFile("protein.pdb")
+            protein = "protein_mutated.pdb"
+            print "Done mutating!"
+
+
+
+        if protonationString:
+            pdb2gmx(protein,pdb2gmxOptions%name,protonationSelections="-asp -glu -his -arg -lys"
+                ,protonationStates=protonationString)
+        else:
+            pdb2gmx(protein,pdb2gmxOptions%name)
+        mergePdb(name, "conf0.pdb")
+        i += 1
+
+    #take everything but the protein protein part from conf0.gro
+    #take the original conf that we are using as a template, merge this protein with the template (non protein)
+    #center the protein
+    #and we are done!
+    cleanupBackups()
+    cmd = "rm *.pdb.* topol.top"
+    executeCommand(shlex.split(cmd))
+    cmd = "rm *itp"
+    os.system(cmd)
+
+def runMembed(args,protonationString = None):
+
+    '''
+        args:ArgumentParser args
+        protonationString: string of all the selections that will be echoed in
     '''
 
-    nonAminoAcidLines = findAllNonAminoAcidLines("membrane_water.pdb")
-    nonAminoAcidLines = nonAminoAcidLines.split("\n")
+    #project initialization
+    indexFile=None
+    protein = "protein.pdb"
 
-    #print nonAminoAcidLines
-    annotations = "\n".join(nonAminoAcidLines[1:4])
-    index = 0
-    for protein in proteinPdbs:
-        aminoAcidLines = findAllAminoAcidLines(protein)
-        with open("frame_%s.pdb"%index,"w") as f:
-            str = annotations+"\n" + aminoAcidLines+ "\n".join(nonAminoAcidLines[4:])
-            f.write(str)
+    #if we have a project we will simply rerun int
+    #TODO add checkpointing steps
+    if(args.index):
+        indexFile = "index.ndx"
+        copyfile(args.index,indexFile)
 
-        index+=1
+    copyfile(args.protein,protein)
 
+
+    #1. Do pdb2gmx
+    file = "conf.pdb"
+
+
+    #FIXME awful and hacky and not general
+    if(os.path.isfile("mutate.pml")):
+        cmd ="pymol -c mutate.pml"
+        executeCommand(shlex.split(cmd))
+        versionFile("protein.pdb")
+        copyfile("protein_mutated.pdb","protein.pdb")
+
+
+    if protonationString:
+        pdb2gmx(protein,pdb2gmxOptions%file,protonationSelections="-asp -glu -his -arg -lys"
+            ,protonationStates=protonationString)
+    else:
+        pdb2gmx(protein,pdb2gmxOptions%file)
+
+    embedProteinIntoMembrane(args.indexGroup,indexFile=indexFile)
+    runMembedSim()
+
+    membeddedFile = "membedded.gro"
+
+    updateWaterAndIonCount(membeddedFile,"topol.top")
+    updateMembraneCount("POPC",membeddedFile,"topol.top")
+
+    centerProtein(args.indexGroup,membeddedFile,output=membeddedFile)
+
+    #create a pdb file as output
+
+    cmd = "editconf -f %s -o %s/%s"%(membeddedFile,ProjectDirectories.CONF_DIR,"conf0.pdb")
+    executeCommand(shlex.split(cmd))
+
+    print("""Structure is embedded into membrane. The file can be found in %s/%s\n \
+        Topology is updated to reflect this file\n
+          Note that you might need to some more stuff before running the actual simulation \n
+          Your system might have a charge imbalance for example.
+          """)%(ProjectDirectories.CONF_DIR,"conf0.gro")
+
+
+#quick and dirty way to do mutataions
+def doMutationIfDescriptionExists():
+
+    '''
+    Does the mutation via pymol
+    outputs a file called protein_mutated.pdb
+    copies it to protein.pdb
+    '''
 

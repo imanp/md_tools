@@ -24,7 +24,7 @@ def pdb2gmx(pdb_structure,options,protonationStates=None,protonationSelections=N
     if (protonationSelections and protonationStates):
         protSel = shlex.split(protonationSelections)
         args = args+protSel
-        executeInteractiveCommand(args,protonationSelections)
+        executeInteractiveCommand(args,protonationStates)
     else:
         executeCommand(args)
 
@@ -262,9 +262,9 @@ def executeInteractiveCommand(args,interactions):
 
     p = subprocess.Popen(args,stdin=subprocess.PIPE)
 
-    out,err = p.communicate(input=interactions)
+    out,err = p.communicate(interactions)
     ret = p.returncode
-
+    print out
     cmd = "echo -e %s | %s"%(repr(interactions)," ".join(args))
     if ret:
         print "Error when executing the command %s\nCheck the console output for further info"%cmd

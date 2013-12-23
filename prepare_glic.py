@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from argparse import *
+import glic.glicTools as glicTools
 
 from lib.membrane import *
 #create a project
@@ -21,16 +22,18 @@ from lib.membrane import *
 parser = ArgumentParser()
 parser.add_argument("proteins",
                     help="protein files, accepts wildcard selections only")
-parser.add_argument("indexGroup",
-                    help="The index group to center the protein to the center of the simulation box",
-                    type=int)
-
-#TODO add option for protonations and mutations!
-
+parser.add_argument("indexGroup",help="The index group to center the protein to the center of the simulation box",type=int)
+parser.add_argument("-m --mutations",help="mutations that we want to perform")
+parser.add_argument("--ph",help="the ph value to start this system with",choices=glicTools.phChoices,default=glicTools.phChoices[1])
 args = parser.parse_args()
-#should be run from a project directory
 
-createSystemsFromTemplate(args)
+
+if args.ph:
+    protein,protonationStates = glicTools.getProtonationSelections(args.proteins,args.ph)
+
+    args.protein = protein
+
+createSystemsFromTemplate(args,protonationString=protonationStates)
 
 
 

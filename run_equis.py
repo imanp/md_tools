@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from argparse import *
+import glob
 import sys
 from lib.util import *
 from lib.md_tools import *
@@ -59,8 +60,11 @@ cmd ="cpcc setf grompp.in.include[+][+] topol_Protein_chain_A.itp"
 cmd ="cpcc setf grompp.in.include[+][+] posre_Protein_chain_A.itp"
 executeCommand(shlex.split(cmd))
 
-for gro in os.listdir(ProjectDirectories.EQUILIBRATION_DIR):
-    cmd="cpcc setf grompp.in.conf[+] %s/%s"%(ProjectDirectories.EQUILIBRATION_DIR,gro)
+gros = glob.glob("%s/%s"%(ProjectDirectories.EQUILIBRATION_DIR,"conf*.pdb"))
+gros.sort()
+
+for gro in gros:
+    cmd="cpcc setf grompp.in.conf[+] %s"%gro
     executeCommand(shlex.split(cmd))
 
 cmd="cpcc commit"
