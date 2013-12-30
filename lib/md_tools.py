@@ -64,14 +64,18 @@ def genbox(pdb_structure,options):
     return
 
 
-def updateMembraneCount(type,membraneFile,topology):
+def updateMembraneCount(type,membraneFile,topology,fileType="gro"):
     '''
       appends the number of lipids to the topology file
 
       NOTE: expecting membrane file to be a gro file!
     '''
+    if fileType == "pdb":
+        pattern =  "P   %s"%type
+    else:
+        pattern = "%s     P"%type
+    args = ['grep','-c',pattern,membraneFile]
 
-    args = ['grep','-c',"%s     P"%type,membraneFile]
     numLipids = executeCommand(args).rstrip() #rstrip removes new lines
 
     str = "%s        %s\n"%(type,numLipids)
@@ -132,7 +136,7 @@ def updateWaterAndIonCount(pdb_structure,topology):
             if m:
                 topologyStr =  w.sub(newStr,topologyStr)
             else: #append a string to the toplogyStr
-                topologyStr = topologyStr+newStr
+                topologyStr = topologyStr+newStr.strip()+"\n"
             logStr += newStr
 
 

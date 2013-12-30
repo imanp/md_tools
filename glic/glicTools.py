@@ -24,13 +24,10 @@ def getProtonationSelections(protein,ph):
 
     if ph == phChoices[0] :
         #change the HIE:s to HIS
-        proteinFile = "protein_temp.pdb"
-        HIEtoHIS(protein,proteinFile)
         protonationSelections ="\n".join(ProtonationStates.ph46 * 5) + "\n"
-        protein = proteinFile
 
     elif ph == phChoices[1]:
-        protonationSelections = None  #the structures i provide are set to ph7 already!
-        #protonationSelections ="\n".join(ProtonationStates.ph7 * 5) + "\n"
+        #protonationSelections = None  #the structures i provide are set to ph7 already!
+        protonationSelections ="\n".join(ProtonationStates.ph7 * 5) + "\n"
 
-    return protein,protonationSelections
+    return protonationSelections
