@@ -34,14 +34,3 @@ if args.ph:
     args.protein = protein
 
 createSystemsFromTemplate(args,protonationString=protonationStates)
-
-
-
-
-
-
-
-
-
-
-

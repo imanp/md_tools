@@ -198,6 +198,25 @@ def mergePdb(file,fileToMerge):
     logCommand("Merged the pdb files %s %s"%(file,fileToMerge))
 
 
+def mergeProteinAndMembranePdb(file,fileToMerge):
+    '''
+    Merges all amino acid lines in file with non protein atoms in filetoMerge
+    the box size of fileToMerge is kept and the boxsize of file is discarded
+    '''
+    boxSize = findPDBBoxSize(fileToMerge)
+    lines = findAllNonProtein(fileToMerge)
+    toMerge = findAllAminoAcidLines(file)
+
+    #backup the file
+    versionFile(file)
+    # #write new file
+    with open(file,"w") as f:
+        str = boxSize.strip() +'\n' + toMerge.strip() +'\n'+ lines.strip()
+        f.write(str)
+
+    logCommand("Merged the non Amino acid lines of %s with all the atoms in %s"%(file,fileToMerge))
+
+
 def translateProtein(pdb_structure,translationVectorString,options,indexFile=None):
     args=["editconf","-f",pdb_structure,"-translate"]+shlex.split(translationVectorString)
     if indexFile:

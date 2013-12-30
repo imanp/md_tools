@@ -11,3 +11,4 @@ class FileNames():
     PROJ_INFO=".proj"
     GROMPP_EM = "grompp_em.mdp"
     GROMPP_EQUI = "grompp_equi.mdp"
+    CONF = "conf.pdb"

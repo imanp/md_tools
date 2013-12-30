@@ -3,7 +3,7 @@ import os
 from shutil import copyfile
 from glic.protonationStates import ProtonationStates
 from lib.md_tools import *
-from lib.util import ProjectDirectories
+from lib.util import ProjectDirectories, FileNames
 
 pdb2gmxOptions = "-ter -water tip3p -ff amber99sb-ildn -ignh -vsite hydrogen -o %s"
 
@@ -57,7 +57,6 @@ def embedProteinIntoMembrane(centerGroup,indexFile=None,membraneSize=288,membran
     args = ["cp","%s/vdwradii.dat"%membraneDir,"."]
     executeCommand(args)
     genbox("%s/conf.gro"%membraneDir,"-o membrane_water.pdb")
-
     #FIXME generalize membrane type
     updateMembraneCount("POPC","%s/conf.gro"%membraneDir,"topol.top")
     updateWaterAndIonCount("membrane_water.pdb","topol.top")
@@ -66,7 +65,8 @@ def embedProteinIntoMembrane(centerGroup,indexFile=None,membraneSize=288,membran
     executeCommand(args)
 
     #3. Merge the membrane file and the protein file
-    mergePdb("membrane_water.pdb","conf.pdb")
+    mergePdb("membrane_water.pdb",FileNames.CONF)
+
 
     # 4. Update the top file with itp files for the membrane etc
     injectLinesIntoTop("topol.top")
@@ -108,7 +108,6 @@ def createSystemsFromTemplate(args,protonationString=None):
     os.chdir("confs")
 
     files = glob.glob(path)
-    print files
 #go to the confs directory
     filename = "conf%s.pdb"
     i = 1
@@ -168,7 +167,7 @@ def runMembed(args,protonationString = None):
 
 
     #1. Do pdb2gmx
-    file = "conf.pdb"
+    file = FileNames.CONF
 
 
     #FIXME awful and hacky and not general

@@ -29,11 +29,9 @@ def findAllAminoAcidLines(pdbFile):
     return "".join(aaLines)
 
 
-def findAllNonAminoAcidLines(pdbFile):
+def findAllNonProtein(pdbFile):
     #finds all lines in pdbs that is not an amino acid
-    aminoAcids = getAminoAcidList()
-
-    aastr = r"|".join(aminoAcids)
+    aastr = r"|".join(getAminoAcidList())
     regexp = r"ATOM.*(%s)"%aastr
 
 
@@ -44,6 +42,21 @@ def findAllNonAminoAcidLines(pdbFile):
 
 
     return "".join(aaLines)
+
+def findPDBBoxSize(pdbFile):
+    '''
+    Finds the line starting with CRYST and returns it
+    '''
+    with open(pdbFile,"r") as f:
+        str = f.read()
+        m = re.search("CRYST.*",str,re.MULTILINE)
+
+        if m ==None:
+            raise Exception("No line starting with CRYST could be found in file %s"%pdbFile)
+            exit(1)
+
+        else:
+            return m.group(0)
 
 def getAminoAcidList():
     return ['VAL','SER','ARG','HIS','LYS','ASP','GLU','SER' \
