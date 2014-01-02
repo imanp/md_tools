@@ -29,7 +29,7 @@ from glic import glicTools
 from lib.md_tools import *
 from lib.membrane import pdb2gmxOptions, injectLinesIntoTop
 from lib.pdb_util import findAllAminoAcidLines
-
+from lib.util import MDToolsDirectories
 
 parser = ArgumentParser()
 parser.add_argument("proteins",
@@ -43,12 +43,22 @@ protonationString=None
 if args.ph:
     protonationString = glicTools.getProtonationSelections(args.proteins,args.ph)
 
+#copy in itp files
+cmd = "cp %s ."%os.path.join(MDToolsDirectories.POPC_FF_DIR,"popc.itp")
+executeCommand(shlex.split(cmd))
+cmd = "cp %s ."%os.path.join(MDToolsDirectories.OTHER,"ffbonded.itp")
+executeCommand(shlex.split(cmd))
+cmd = "cp %s ."%os.path.join(MDToolsDirectories.OTHER,"ffnonbonded.itp")
+executeCommand(shlex.split(cmd))
 
 path = os.path.abspath(args.proteins)
 
 os.chdir("confs")
 
 files = glob.glob(path)
+
+files = sorted_nicely(set(files))
+
 
 index=0
 proteinFileName = "conf%s.pdb"
@@ -57,6 +67,7 @@ for system in files:
 
     #we only want to do pdb2gmx on the protein not the rest of the stuff
     str = findAllAminoAcidLines(system)
+    str = strip_vsites(str)
     with open(currentProtein,"w") as f:
         f.write(str)
 
@@ -79,12 +90,22 @@ for system in files:
 
     #assuming that the provided files includes the whole system
     mergeProteinAndMembranePdb(currentProtein,system)
-
     index+=1
 
 
 #only need to do this for one topology file
-#updateMembraneCount("POPC",currentProtein,"topol.top")
 updateMembraneCount("POPC",currentProtein,"topol.top",fileType="pdb")
 updateWaterAndIonCount(currentProtein,"topol.top")
 injectLinesIntoTop("topol.top")
+
+
+
+#TODO
+#ensureCorrectSolventOrder(currentProtein,"topol.top")
+
+
+os.system("mv topol.top *.itp ../")
+
+#os.system(r"rm \#* conf*.pdb.* topol.top.*")
+
+print "Done however you need to ensure that the molecule order in the top file is correct and that your system has balanced charges"

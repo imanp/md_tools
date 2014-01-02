@@ -70,11 +70,17 @@ def updateMembraneCount(type,membraneFile,topology,fileType="gro"):
 
       NOTE: expecting membrane file to be a gro file!
     '''
+    if type =="POPC":
+        pattern = "POPC?"
+
+    if type == "DOPC":
+        pattern = "DOPC?"
+
     if fileType == "pdb":
-        pattern =  "P   %s"%type
+        pattern =  "P   %s"%pattern
     else:
         pattern = "%s     P"%type
-    args = ['grep','-c',pattern,membraneFile]
+    args = ['grep','-P','-c',pattern,membraneFile]
 
     numLipids = executeCommand(args).rstrip() #rstrip removes new lines
 
@@ -297,6 +303,23 @@ def executeInteractiveCommand(args,interactions):
         return out
 
 
+def strip_vsites(inputStr):
+    '''
+    Reads an and filters away all the vsite lines
+    '''
+    lines = inputStr.split("\n")
+
+    outputLines = []
+    exp= "MN[1-9]|[1-9]M.."
+    for line in lines:
+        match = re.search(exp,line)
+        if match == None:
+            outputLines.append(line)
+
+    outputStr = "\n".join(outputLines)
+    return outputStr.strip()
+
+
 
 def generateDummyMdpAndTpr(pdb_structure,topology):
     mdpDummy = "grompp_dummy.mdp"
@@ -322,11 +345,19 @@ def logCommand(str):
         f.write(str)
         f.write("\n\n")
 
-
-
 def cleanupBackups():
     #cleanup gromacs backups
     cmd = "rm \#*"
     os.system(cmd)
+
+
+def sorted_nicely( l ):
+    """ Sort the given iterable in the way that humans expect."""
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    return sorted(l, key = alphanum_key)
+
+
+
 
 

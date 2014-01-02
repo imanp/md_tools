@@ -20,12 +20,15 @@ def injectLinesIntoTop(toplogy="topol.top"):
             f.write(line)
 
             if(line.startswith("""#include "amber99sb-ildn.ff/forcefield.itp""")):
-                f.write("""#include "%s/other/ffnonbonded.itp"\n"""%baseDir)
-                f.write("""#include "%s/other/ffbonded.itp"\n"""%baseDir)
+                #f.write("""#include "%s/other/ffnonbonded.itp"\n"""%baseDir)
+                #f.write("""#include "%s/other/ffbonded.itp"\n"""%baseDir)
+                f.write("""#include "ffnonbonded.itp"\n""")
+                f.write("""#include "ffbonded.itp"\n""")
 
             if(line.startswith("#endif")):
                 f.write("""; Include lipid topology\n""")
-                f.write("""#include "%s/other/amber99sb-ildn-berger.ff/popc.itp\n"""%baseDir)
+                #f.write("""#include "%s/other/amber99sb-ildn-berger.ff/popc.itp\n"""%baseDir)
+                f.write("""#include "popc.itp\n""")
 
 
 def embedProteinIntoMembrane(centerGroup,indexFile=None,membraneSize=288,membraneType='popc'):

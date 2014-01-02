@@ -34,11 +34,10 @@ def findAllNonProtein(pdbFile):
     aastr = r"|".join(getAminoAcidList())
     regexp = r"ATOM.*(%s)"%aastr
 
-
     with open(pdbFile) as f:
         lines = f.readlines()
         #find all lines starting with ATOM
-        aaLines = [line for line in lines if not re.match(regexp,line)]
+        aaLines = [line for line in lines if not re.match(regexp,line) and line.startswith('ATOM')]
 
 
     return "".join(aaLines)
