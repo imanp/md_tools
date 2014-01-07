@@ -49,7 +49,8 @@ elif args.step == "prod":
     filePathList =  glob.glob("%s/%s"%(ProjectDirectories.EQUILIBRATION_DIR,"conf*.*"))
     filePathList = sorted_nicely(set(filePathList))
 
-    CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores)
+    cmdLine = r"\"-npme 42 \""
+    CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores,cmdLine=cmdLine)
 
 
 

@@ -6,7 +6,7 @@ from lib.util import MDToolsDirectories
 
 class CpcUtil():
     @staticmethod
-    def buildMDWorkflow(projectName,gromppPath,filePathList,maxCores=24,maxFiles=None):
+    def buildMDWorkflow(projectName,gromppPath,filePathList,maxCores=24,maxFiles=None,cmdLine=None):
         '''
         creates a workflow for md simulation using grompp and mdrun function blocks
         '''
@@ -30,7 +30,7 @@ class CpcUtil():
 
 
         #maximum number of cores to user per simulation. if not set simulations will be tuned
-        cmd="cpcc set mdrun.in.resources[0].max.cores 24"
+        cmd="cpcc set mdrun.in.resources[0].max.cores %s"%maxCores
         executeCommand(shlex.split(cmd))
 
         cmd="cpcc setf grompp.in.top[+] topol.top"
@@ -58,14 +58,21 @@ class CpcUtil():
 
         gros = filePathList
 
+        # maxFiles = 1
+
         count = 0
         for gro in gros:
             cmd="cpcc setf grompp.in.conf[+] %s"%gro
             executeCommand(shlex.split(cmd))
             count+=1
             #if we want to limit the number of files to submit in an easy way
-            if maxFiles and count==max:
+            if maxFiles and count==maxFiles:
                 break
+
+
+        if(cmdLine):
+            cmd = "cpcc set mdrun.in.cmdline_options[+] %s"%cmdLine
+            executeCommand(shlex.split(cmd))
 
         cmd="cpcc commit"
         executeCommand(shlex.split(cmd))

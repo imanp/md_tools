@@ -6,4 +6,6 @@ from lib.pdb_util import *
 #res = findAllNonProtein("/Users/iman/Desktop/glic_popc/starting_files/4HFI_POPC_F238A_ph7_0.pdb")
 #print res
 
-print os.getcwd()
+res = removeATOM("/Users/iman/Desktop/glic_popc/F238A_ph4.6/conf0.pdb","CL",32)
+
+print res

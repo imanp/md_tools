@@ -106,6 +106,6 @@ injectLinesIntoTop("topol.top")
 
 os.system("mv topol.top *.itp ../")
 
-#os.system(r"rm \#* conf*.pdb.* topol.top.*")
+os.system(r"rm \#* conf*.pdb.* topol.top.*")
 
 print "Done however you need to ensure that the molecule order in the top file is correct and that your system has balanced charges"

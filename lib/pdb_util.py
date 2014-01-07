@@ -63,3 +63,18 @@ def getAminoAcidList():
         ,'LEU','MET','PHE','TYR','TRP','CYS']
 
 
+
+def removeAtom(pdbFile,atomName,num):
+    with open(pdbFile,"r") as f:
+        lines = f.readlines()
+
+    #NOTE not particularly effective
+    regex = "ATOM\s+\d+\s+%s\s+.*"%atomName
+    #find all the indices of lines having atomName X
+    indices = [index for index,value in enumerate(lines) if re.match(regex,value) ]
+
+    #give me the last num indices
+    indicesToRemove = indices[-num:]
+    result = [value for index,value in enumerate(lines) if index not in indicesToRemove ]
+
+    return "\n".join(result)
