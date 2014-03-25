@@ -26,6 +26,7 @@ import glob
 import os
 from shutil import copyfile
 from glic import glicTools
+from lib import membrane
 from lib.md_tools import *
 from lib.membrane import pdb2gmxOptions, injectLinesIntoTop
 from lib.pdb_util import findAllAminoAcidLines
@@ -43,13 +44,10 @@ protonationString=None
 if args.ph:
     protonationString = glicTools.getProtonationSelections(args.proteins,args.ph)
 
+
+
 #copy in itp files
-cmd = "cp %s ."%os.path.join(MDToolsDirectories.POPC_FF_DIR,"popc.itp")
-executeCommand(shlex.split(cmd))
-cmd = "cp %s ."%os.path.join(MDToolsDirectories.OTHER,"ffbonded.itp")
-executeCommand(shlex.split(cmd))
-cmd = "cp %s ."%os.path.join(MDToolsDirectories.OTHER,"ffnonbonded.itp")
-executeCommand(shlex.split(cmd))
+membrane.copyItpFiles()
 
 path = os.path.abspath(args.proteins)
 
@@ -73,11 +71,13 @@ for system in files:
 
         #FIXME awful and hacky and not general
         if(os.path.isfile("../mutate.pml")):
+            mutateAbsPath = os.path.abspath("../mutate.pml")
             copyfile(currentProtein,"protein.pdb")
             print "Mutating!"
-            cmd ="pymol -c ../mutate.pml"
-            executeCommand(shlex.split(cmd))
-
+            os.system('pwd')
+            cmd = "/Applications/MacPyMOL.app/Contents/MacOS/MacPyMOL -c ../mutate.pml"
+            os.system(cmd)
+            logCommand(cmd)
             currentProtein= "protein_mutated.pdb"
             print "Done mutating will use file protein_mutated.pdb for pdb2gmx!"
             logCommand("Mutated protein using the file mutate.pml in root project dir")

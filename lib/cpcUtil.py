@@ -17,9 +17,9 @@ class CpcUtil():
 
         cmd="cpcc import gromacs"
         executeCommand(shlex.split(cmd))
-        cmd="cpcc instance gromacs::grompp_multi grompp"
+        cmd="cpcc instance gromacs::grompps grompp"
         executeCommand(shlex.split(cmd))
-        cmd="cpcc instance gromacs::mdrun_multi mdrun"
+        cmd="cpcc instance gromacs::mdruns mdrun"
         executeCommand(shlex.split(cmd))
 
 

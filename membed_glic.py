@@ -29,11 +29,9 @@ parser.add_argument("-m --mutations",help="mutations that we want to perform")
 parser.add_argument("--ph",help="the ph value to start this system with",choices=glicTools.phChoices)
 args = parser.parse_args()
 
-
+print args
 if args.ph:
-    protein,protonationStates = glicTools.getProtonationSelections(args.protein,args.ph)
-
-    args.protein = protein
+    protonationStates = glicTools.getProtonationSelections(args.protein,args.ph)
 
 runMembed(args,protonationString=protonationStates)
 

@@ -3,9 +3,18 @@ import os
 from shutil import copyfile
 from glic.protonationStates import ProtonationStates
 from lib.md_tools import *
-from lib.util import ProjectDirectories, FileNames
+from lib.util import ProjectDirectories, FileNames, MDToolsDirectories
 
 pdb2gmxOptions = "-ter -water tip3p -ff amber99sb-ildn -ignh -vsite hydrogen -o %s"
+
+
+def copyItpFiles():
+    cmd = "cp %s ."%os.path.join(MDToolsDirectories.POPC_FF_DIR,"popc.itp")
+    executeCommand(shlex.split(cmd))
+    cmd = "cp %s ."%os.path.join(MDToolsDirectories.OTHER,"ffbonded.itp")
+    executeCommand(shlex.split(cmd))
+    cmd = "cp %s ."%os.path.join(MDToolsDirectories.OTHER,"ffnonbonded.itp")
+    executeCommand(shlex.split(cmd))
 
 def injectLinesIntoTop(toplogy="topol.top"):
 #inject some lines into the topology file
@@ -28,7 +37,7 @@ def injectLinesIntoTop(toplogy="topol.top"):
             if(line.startswith("#endif")):
                 f.write("""; Include lipid topology\n""")
                 #f.write("""#include "%s/other/amber99sb-ildn-berger.ff/popc.itp\n"""%baseDir)
-                f.write("""#include "popc.itp\n""")
+                f.write("""#include "popc.itp"\n""")
 
 
 def embedProteinIntoMembrane(centerGroup,indexFile=None,membraneSize=288,membraneType='popc'):
@@ -160,6 +169,7 @@ def runMembed(args,protonationString = None):
     indexFile=None
     protein = "protein.pdb"
 
+    copyItpFiles()
     #if we have a project we will simply rerun int
     #TODO add checkpointing steps
     if(args.index):

@@ -17,7 +17,6 @@ def HIEtoHIS(infile,outfile):
 
 
 def getProtonationSelections(protein,ph):
-
     '''
     ph is as string of either 4.6 or 7.0
     '''
@@ -27,6 +26,7 @@ def getProtonationSelections(protein,ph):
         protonationSelections ="\n".join(ProtonationStates.ph46 * 5) + "\n"
 
     elif ph == phChoices[1]:
+
         #protonationSelections = None  #the structures i provide are set to ph7 already!
         protonationSelections ="\n".join(ProtonationStates.ph7 * 5) + "\n"
 
