@@ -1,3 +1,4 @@
+import collections
 import re
 import shlex
 import subprocess
@@ -27,7 +28,6 @@ def pdb2gmx(pdb_structure,options,protonationStates=None,protonationSelections=N
         executeInteractiveCommand(args,protonationStates)
     else:
         executeCommand(args)
-
     return
 
 
@@ -217,6 +217,7 @@ def mergeProteinAndMembranePdb(file,fileToMerge):
     lines = findAllNonProtein(fileToMerge)
     toMerge = findAllAminoAcidLines(file)
 
+
     #backup the file
     versionFile(file)
     # #write new file
@@ -274,8 +275,8 @@ def extractPDBcolumns(numColumns,input):
 def executeCommand(args):
 
     try:
-        ret = subprocess.check_output(args)
         logCommand(" ".join(args))
+        ret = subprocess.check_output(args)
 
         #we want to show this info on the terminal
         print ret
@@ -288,18 +289,18 @@ def executeCommand(args):
 
 
 def executeInteractiveCommand(args,interactions):
-
+    cmd = "echo -e %s | %s"%(repr(interactions)," ".join(args))
+    logCommand(cmd)
     p = subprocess.Popen(args,stdin=subprocess.PIPE)
 
     out,err = p.communicate(interactions)
     ret = p.returncode
     print out
-    cmd = "echo -e %s | %s"%(repr(interactions)," ".join(args))
+
     if ret:
         print "Error when executing the command %s\nCheck the console output for further info"%cmd
         exit(1)
     else:
-        logCommand(cmd)
         return out
 
 
@@ -356,6 +357,62 @@ def sorted_nicely( l ):
     convert = lambda text: int(text) if text.isdigit() else text
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
     return sorted(l, key = alphanum_key)
+
+def generateSequence(pdbFile,mutations=None):
+    '''
+    #given a pdb file generate a seqeunce
+
+    #this outputs the sequence in a format suitable for scrwl4
+
+    inputs:
+        pdbFile: file
+        mutations:string , a comma separated string of mutations ex. I233S,I240S
+    '''
+
+    chains = collections.OrderedDict()
+    mutations = parseMutations(mutations)
+    with open(pdbFile,"r") as f:
+        #for each line that starts with ATOM
+        for line in f:
+            aminoAcidThreeLetterCode = line[17:20]         #read columns 18-20 for res name, pdb column numbering starts with 1!
+            if(line.startswith("ATOM") and isAminoAcid(aminoAcidThreeLetterCode)):
+                sequenceNum = line[22:26].strip() # read columns  23-26 for sequence number, pdb column numbering starts with 1!
+                chain = line[21]   #column 22 = chain , pdb column numbering starts with 1!
+
+                if not chain in chains:
+                    chains[chain] = collections.OrderedDict()   #structure for this dict, sequenceNum,aminoacid
+
+                if not sequenceNum in chains[chain]:
+
+                    if sequenceNum in mutations:
+                        chains[chain][sequenceNum] = mutations[sequenceNum]
+                    else:
+                        chains[chain][sequenceNum] = getAminoAcidLongToShort(aminoAcidThreeLetterCode).lower()
+
+    str= ""
+    for sequences in chains.itervalues():
+         str+="".join(sequences.itervalues())
+
+    return str
+
+
+def parseMutations(mutationString):
+    '''
+    given a mutationstring of form I233S,I240S
+    returns a list of sequenceNumbers and the corresponding mutation
+    '''
+
+    splittedString = mutationString.split(",")
+    mutations = dict()
+    for string in splittedString:
+        sequenceNum = string[1:len(string)-1]
+
+        mutations[sequenceNum]= string[-1]
+    return mutations
+
+
+
+
 
 
 

@@ -32,19 +32,18 @@ of the structure created by membed.py.
 it also assumes that the topology generated from membed.py is reusable
 
 
-run_ems
+ensemble.py
+==============
+ given starting structures this script can protonate and mutate each structure and prepare topologies
+
+
+run_cpc
 ===================
 creates a copernicus workflow and submits all the structures in the confs folder to it
+requires mdp files to be provided separately
+
+can create an em and a production workflow
 
 
-run_equis
-===================
-creates a copernicus workflow and submits all the structures in the equis folder to it.
-this conformations should be fetched from the output of the em workflow
 
-
-run
-===================
-creates a copernicus workflow and submits all the structures in the run  folder to it.
-this conformations should be fetched from the output of the equi or the em workflow
 

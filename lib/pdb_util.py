@@ -57,12 +57,47 @@ def findPDBBoxSize(pdbFile):
         else:
             return m.group(0)
 
+def getAminoAcidDict():
+    longToShort = { 'ARG':'R'
+        ,'HIS':'H'
+        ,'LYS':'K'
+        ,'ASP':'D'
+        ,'GLU':'E'
+        ,'SER':'S'
+        ,'THR':'T'
+        ,'ASN':'N'
+        ,'GLN':'Q'
+        ,'CYS':'C'
+        ,'SEC':'U'
+        ,'GLY':'G'
+        ,'PRO':'P'
+        ,'ALA':'A'
+        ,'VAL':'V'
+        ,'ILE':'I'
+        ,'LEU':'L'
+        ,'MET':'M'
+        ,'PHE':'F'
+        ,'TYR':'Y'
+        ,'TRP':'W'
+    }
+
+    return longToShort
+
 def getAminoAcidList():
-    return ['VAL','SER','ARG','HIS','LYS','ASP','GLU','SER' \
-        ,'THR','ASN','GLN','SYS','SEC','GLY','PRO','ALA','ILE' \
-        ,'LEU','MET','PHE','TYR','TRP','CYS']
+    return getAminoAcidDict().keys()
+
+def getAminoAcidLongToShort(threeLetterName):
+    '''
+    converts the three letter name of the amino acid to the one letter name
+    '''
+    longToShort = getAminoAcidDict()
+    return longToShort[threeLetterName]
 
 
+def isAminoAcid(threeLetterName):
+    longToShort = getAminoAcidDict()
+    if threeLetterName in longToShort.keys():
+        return True
 
 def removeAtom(pdbFile,atomName,num):
     with open(pdbFile,"r") as f:

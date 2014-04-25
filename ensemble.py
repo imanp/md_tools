@@ -69,18 +69,17 @@ for system in files:
     with open(currentProtein,"w") as f:
         f.write(str)
 
-        #FIXME awful and hacky and not general
-        if(os.path.isfile("../mutate.pml")):
-            mutateAbsPath = os.path.abspath("../mutate.pml")
-            copyfile(currentProtein,"protein.pdb")
-            print "Mutating!"
-            os.system('pwd')
-            cmd = "/Applications/MacPyMOL.app/Contents/MacOS/MacPyMOL -c ../mutate.pml"
-            os.system(cmd)
-            logCommand(cmd)
-            currentProtein= "protein_mutated.pdb"
-            print "Done mutating will use file protein_mutated.pdb for pdb2gmx!"
-            logCommand("Mutated protein using the file mutate.pml in root project dir")
+    #FIXME awful and hacky and not general
+    if(os.path.isfile("../mutate.pml")):
+        mutateAbsPath = os.path.abspath("../mutate.pml")
+        os.system("cp %s protein.pdb"%currentProtein)
+        print "Mutating!"
+        cmd = "/Applications/MacPyMOL.app/Contents/MacOS/MacPyMOL -c ../mutate.pml"
+        os.system(cmd)
+        logCommand(cmd)
+        os.system("cp protein_mutated.pdb %s"%currentProtein)
+        print "Done mutating"
+        logCommand("Mutated protein using the file mutate.pml in root project dir")
 
     if protonationString:
         pdb2gmx(currentProtein,pdb2gmxOptions%currentProtein,protonationSelections="-asp -glu -his -arg -lys"

@@ -23,7 +23,7 @@ parser.add_argument("-max",help="maximum number of cores for each run",default=2
 args = parser.parse_args()
 
 maxCores = 24
-print args
+
 if args.max:
     maxCores = args.max
 
