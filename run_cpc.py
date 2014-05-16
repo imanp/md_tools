@@ -35,7 +35,7 @@ if args.step == "em":
         sys.exit(1)
 
 
-    filePathList =  glob.glob("%s/%s"%(ProjectDirectories.CONF_DIR,"conf*.*"))
+    filePathList =  glob.glob("%s/%s"%(ProjectDirectories.CONF_DIR,"conf*.pdb"))
     filePathList = sorted_nicely(set(filePathList))
 
     CpcUtil.buildMDWorkflow(getEmProjectName(),FileNames.GROMPP_EM,filePathList,maxCores=maxCores)
@@ -46,11 +46,13 @@ elif args.step == "prod":
         sys.exit(1)
 
 
-    filePathList =  glob.glob("%s/%s"%(ProjectDirectories.EQUILIBRATION_DIR,"conf*.*"))
+    filePathList =  glob.glob("%s/%s"%(ProjectDirectories.EQUILIBRATION_DIR,"conf*.gro"))
     filePathList = sorted_nicely(set(filePathList))
+
 
     cmdLine = "\"-npme 42\""
     CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores,cmdLine=cmdLine)
+    # CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores)
 
 
 

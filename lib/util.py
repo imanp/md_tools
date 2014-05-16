@@ -9,6 +9,8 @@ class ProjectDirectories():
     EQUILIBRATION_DIR="equi"
     RUN_DIR="run"
     CONF_DIR="confs"
+    TPR_DIR="tprs"
+    TRAJ_DIR="trajectories"
 
 class FileNames():
     PROJ_INFO=".proj"
@@ -24,6 +26,9 @@ class MDToolsDirectories():
 
 def getProjectName():
     return os.path.basename(os.getcwd())
+
+def getEmProjectName():
+    return "%s_em"%getProjectName()
 
 def getEmProjectName():
     return "%s_em"%getProjectName()

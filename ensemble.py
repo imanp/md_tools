@@ -59,9 +59,12 @@ files = sorted_nicely(set(files))
 
 
 index=0
-proteinFileName = "conf%s.pdb"
+# proteinFileName = "conf%s.pdb"
+#we just prefix the regular filename of the starting file with conf
+proteinFileName = "conf_%s"
+
 for system in files:
-    currentProtein = proteinFileName%index
+    currentProtein = proteinFileName%os.path.basename(system)
 
     #we only want to do pdb2gmx on the protein not the rest of the stuff
     str = findAllAminoAcidLines(system)

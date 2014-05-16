@@ -1,7 +1,8 @@
+import re
 import shlex
 from lib.md_tools import executeCommand
 import os
-from lib.util import MDToolsDirectories
+from lib.util import MDToolsDirectories, ProjectDirectories
 
 
 class CpcUtil():
@@ -79,3 +80,37 @@ class CpcUtil():
 
         cmd="cpcc activate"
         executeCommand(shlex.split(cmd))
+
+    @staticmethod
+    def fetchData(selection,saveDir):
+        cmd = "cpcc get %s"%selection
+        res = executeCommand(shlex.split(cmd))
+
+        lines = res.split("\n")
+        files = []
+        #remove first and two last lines
+        if lines:
+            del(lines[0])
+            del(lines[-1])
+            del(lines[-1])
+
+
+            index = 0
+            regex =r"(.*)\.(.*)"
+
+            for line in lines:
+                filename = line.strip().strip(",").split("/")[-1]
+                if filename!="None":  #yes this is a none string from the terminal output
+                    m = re.match(regex,filename)
+                    filename = "%s_%s.%s"%(m.group(1),index,m.group(2))
+                    files+=filename
+                    cmd = "cpcc getf %s[%s]"%(selection,index)
+                    res = executeCommand(shlex.split(cmd))
+
+                    with open("%s/%s"%(saveDir,filename),"w") as f:
+                        f.write(res)
+
+                index+=1
+
+
+        return files
