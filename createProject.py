@@ -42,6 +42,9 @@ os.mkdir(ProjectDirectories.EM_DIR)
 os.mkdir(ProjectDirectories.EQUILIBRATION_DIR)
 os.mkdir(ProjectDirectories.RUN_DIR)
 os.mkdir(ProjectDirectories.CONF_DIR)
+os.mkdir(ProjectDirectories.TPR_DIR)
+os.mkdir(ProjectDirectories.TRAJ_DIR)
+os.mkdir(ProjectDirectories.ANALYSIS_DIR)
 with open(FileNames.PROJ_INFO,"w") as f:
     f.write(args.projectName)
 

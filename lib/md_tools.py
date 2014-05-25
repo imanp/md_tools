@@ -278,8 +278,8 @@ def executeCommand(args):
         logCommand(" ".join(args))
         ret = subprocess.check_output(args)
 
-        #we want to show this info on the terminal
-        print ret
+        # #we want to show this info on the terminal
+        # print ret
 
         return ret
     except subprocess.CalledProcessError as e:
@@ -289,13 +289,17 @@ def executeCommand(args):
 
 
 def executeInteractiveCommand(args,interactions):
+    print args
+    print " ".join(args)
     cmd = "echo -e %s | %s"%(repr(interactions)," ".join(args))
     logCommand(cmd)
+    #print cmd
     p = subprocess.Popen(args,stdin=subprocess.PIPE)
 
     out,err = p.communicate(interactions)
     ret = p.returncode
     print out
+    print err
 
     if ret:
         print "Error when executing the command %s\nCheck the console output for further info"%cmd

@@ -11,6 +11,10 @@ class ProjectDirectories():
     CONF_DIR="confs"
     TPR_DIR="tprs"
     TRAJ_DIR="trajectories"
+    ANALYSIS_DIR="analysis"
+    ANALYSIS_FULL_DIR="%s/%s"%(ANALYSIS_DIR,"full")
+    ANALYSIS_TMD_DIR="%s/%s"%(ANALYSIS_DIR,"tmd")
+    ANALYSIS_M2_DIR="%s/%s"%(ANALYSIS_DIR,"m2")
 
 class FileNames():
     PROJ_INFO=".proj"
@@ -18,6 +22,7 @@ class FileNames():
     GROMPP_EQUI = "grompp_equi.mdp"
     GROMPP_PROD = "grompp.mdp"
     CONF = "conf.pdb"
+    FIRST_CONF="conf0.pdb"
 
 class MDToolsDirectories():
     OTHER =  os.path.join(os.path.dirname(sys.argv[0]) ,"lib","other")

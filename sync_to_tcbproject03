@@ -1,0 +1,1 @@
+rsync -vzrtpl ~/code/md_tools tcbproject03:./code/  --exclude=~/code/md_tools/.git --exclude=~/code/md_tools/.idea
