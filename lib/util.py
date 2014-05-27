@@ -15,6 +15,9 @@ class ProjectDirectories():
     ANALYSIS_FULL_DIR="%s/%s"%(ANALYSIS_DIR,"full")
     ANALYSIS_TMD_DIR="%s/%s"%(ANALYSIS_DIR,"tmd")
     ANALYSIS_M2_DIR="%s/%s"%(ANALYSIS_DIR,"m2")
+    ANALYSIS_PROTEIN_DIR="%s/%s"%(ANALYSIS_DIR,"protein")
+    ANALYSIS_TMD_BACKBONE_DIR="%s/%s"%(ANALYSIS_DIR,"tmd_backbone")
+    ANALYSIS_M2_BACKBONE_DIR="%s/%s"%(ANALYSIS_DIR,"m2_backbone")
 
 class FileNames():
     PROJ_INFO=".proj"
