@@ -41,3 +41,6 @@ def getEmProjectName():
 def getEmProjectName():
     return "%s_em"%getProjectName()
 
+def getReferencePdb(dir):
+    return "%s/ref.pdb"%dir
+

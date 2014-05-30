@@ -22,11 +22,16 @@ parser.add_argument("--trajtype",default='tmd_backbone',
 args = parser.parse_args()
 
 xtcDir = "XTC"
-executeCommand(["mkdir",'-p',xtcDir])
+if not os.path.exists(xtcDir):
+    executeCommand(["mkdir",'-p',xtcDir])
 
 index=0
+
 for projectDir in args.projects:
-    projectName= os.path.basename(projectDir)
+
+    regex = ".*/(.*)/"
+    m = re.match(regex,projectDir)
+    projectName = m.group(1)
     path = "%s/analysis/%s/"%(projectDir,args.trajtype)
     xtcs = "%s/*xtc"%(path)
     trajs = [os.path.basename(f) for f in sorted(glob.glob(xtcs))]
