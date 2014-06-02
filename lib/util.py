@@ -18,6 +18,8 @@ class ProjectDirectories():
     ANALYSIS_PROTEIN_DIR="%s/%s"%(ANALYSIS_DIR,"protein")
     ANALYSIS_TMD_BACKBONE_DIR="%s/%s"%(ANALYSIS_DIR,"tmd_backbone")
     ANALYSIS_M2_BACKBONE_DIR="%s/%s"%(ANALYSIS_DIR,"m2_backbone")
+    ANALYSIS_PORE_DIMENSION_DIR="%s/%s"%(ANALYSIS_DIR,"pore_dimensions")
+    ANALYSIS_WATER_COUNT_DIR="%s/%s"%(ANALYSIS_DIR,"water_counts")
 
 class FileNames():
     PROJ_INFO=".proj"
@@ -25,7 +27,7 @@ class FileNames():
     GROMPP_EQUI = "grompp_equi.mdp"
     GROMPP_PROD = "grompp.mdp"
     CONF = "conf.pdb"
-    FIRST_CONF="conf0.pdb"
+    FIRST_CONF="conf*0.pdb"
 
 class MDToolsDirectories():
     OTHER =  os.path.join(os.path.dirname(sys.argv[0]) ,"lib","other")

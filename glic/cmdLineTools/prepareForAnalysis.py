@@ -28,7 +28,8 @@ if not os.path.exists(indexFile):
     args =["make_ndx","-f","%s"%firstConf, "-o","%s"%indexFile]
     executeInteractiveCommand(args,"ri 229 \n q")
 
-
+# cmd="cp %s/conf*0.pdb %s/ref.pdb"%(ProjectDirectories.CONF_DIR,ProjectDirectories.ANALYSIS_FULL_DIR)
+# executeCommand(shlex.split(cmd))
 regex = "(.*)_(\d).*"
 for trajfile in glob.glob("%s/*xtc"%ProjectDirectories.TRAJ_DIR):
     #what index do we have?

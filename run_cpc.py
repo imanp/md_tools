@@ -50,9 +50,9 @@ elif args.step == "prod":
     filePathList = sorted_nicely(set(filePathList))
 
 
-    cmdLine = "\"-npme 42\""
-    CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores,cmdLine=cmdLine)
-    # CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores)
+    # cmdLine = "\"-npme 42\""
+    # CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores,cmdLine=cmdLine)
+    CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores)
 
 
 

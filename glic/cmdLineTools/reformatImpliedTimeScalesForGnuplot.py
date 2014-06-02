@@ -58,7 +58,7 @@ gnuplotInput.append("unset key")
 gnuplotInput.append("set term pdf enhanced")
 gnuplotInput.append('set output "impscales.pdf"')
 gnuplotInput.append('set format y "10^%T"')
-gnuplotInput.append('plot for[i=1:10] "test.dat" using i with lines')
+gnuplotInput.append('plot for[i=1:10] "impscales.dat" using i with lines')
 
 inp = ";".join(gnuplotInput)
 plot = subprocess.Popen(['gnuplot' ,"-e",inp], stdin=subprocess.PIPE)
