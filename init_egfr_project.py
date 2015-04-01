@@ -22,6 +22,8 @@ frames.sort()
 
 scrwl_sequence_file = "scrwl_sequence.txt"
 index = 0
+
+membrane.copyItpFiles()
 for frame in frames:
     proteinString = md_tools.strip_vsites(pdb_util.findAllAminoAcidLines(frame))
     #proteinString = pdb_util.findAllAminoAcidLines(frame)
@@ -54,6 +56,7 @@ for frame in frames:
 
     with open(confFile,"w") as f:
         f.write(boxSize)
+        f.write("\n")
         f.write(proteinString)
         f.write(nonProteinString)
 

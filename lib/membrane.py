@@ -34,7 +34,7 @@ def injectLinesIntoTop(toplogy="topol.top"):
                 f.write("""#include "ffnonbonded.itp"\n""")
                 f.write("""#include "ffbonded.itp"\n""")
 
-            if(line.startswith("#endif")):
+            if(line.startswith("""#include "amber99sb-ildn.ff/ions.itp""")):
                 f.write("""; Include lipid topology\n""")
                 #f.write("""#include "%s/other/amber99sb-ildn-berger.ff/popc.itp\n"""%baseDir)
                 f.write("""#include "popc.itp"\n""")

@@ -112,14 +112,16 @@ def updateWaterAndIonCount(pdb_structure,topology):
     toCount = {"OW":0,"NA":0,"CL":0}
 
     #name mappings in the topology file
+    #YES CL AND NA SHOULD HAVE SPACES!!
     mappings = {"OW":"SOL","NA":"NA","CL":"CL"}
 
     for elem in toCount:
-        args = ["grep","-c",elem,pdb_structure]
+        args = ["grep","-c"," %s "%elem,pdb_structure]
         p = subprocess.Popen(args,stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, close_fds=True)
         (stdout,stderr) = p.communicate(input=None)
         count = int(stdout)
+        print count
         toCount[elem] = count
 
     with open(topology) as f:
