@@ -32,6 +32,7 @@ from lib.membrane import pdb2gmxOptions, injectLinesIntoTop
 from lib.pdb_util import findAllAminoAcidLines
 from lib.util import MDToolsDirectories
 
+
 parser = ArgumentParser()
 parser.add_argument("proteins",
                     help="protein files, accepts wildcard selections only")

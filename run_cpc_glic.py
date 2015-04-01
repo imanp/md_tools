@@ -16,8 +16,7 @@ Note: assumes there is file named grompp_em.mdp in the project file
 
  '''
 
-iman = "iman" \
-       ""
+
 parser = ArgumentParser()
 parser.add_argument("step",choices=['em','equi','prod'],help="what type of simulation to prepare")
 parser.add_argument("-max",help="maximum number of cores for each run",default=24,type=int)
@@ -54,7 +53,7 @@ elif args.step == "prod":
 
     # cmdLine = "\"-npme 42\""
     # CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores,cmdLine=cmdLine)
-    CpcUtil.buildMDWorkflow(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores)
+    CpcUtil.buildMDWorkflowGLIC(getProjectName(),FileNames.GROMPP_PROD,filePathList,maxCores=maxCores)
 
 
 

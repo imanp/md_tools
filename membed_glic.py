@@ -30,6 +30,7 @@ parser.add_argument("--ph",help="the ph value to start this system with",choices
 args = parser.parse_args()
 
 print args
+protonationStates=None
 if args.ph:
     protonationStates = glicTools.getProtonationSelections(args.protein,args.ph)
 

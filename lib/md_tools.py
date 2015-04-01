@@ -2,8 +2,9 @@ import collections
 import re
 import shlex
 import subprocess
-from lib.versionFile import *
-from lib.pdb_util import *
+import lib.versionFile as versionFile
+import lib.pdb_util as pdb_util
+import lib.util as util
 
 
 def pdb2gmx(pdb_structure,options,protonationStates=None,protonationSelections=None):
@@ -32,21 +33,6 @@ def pdb2gmx(pdb_structure,options,protonationStates=None,protonationSelections=N
 
 
 
-def mutate(pdb_structure,mutations):
-    '''
-        mutates residues
-        can do several mutations at once
-
-        uses pymol mutagenesis
-
-        inputs:
-            pdb_structure :String(filename) a pdb file
-            mutations:List<String,String> a list of tuples, first tuple element
-              is the residue selection the second is the mutation to perform
-              selections and residue names follows pymol standard
-    '''
-
-
 def genbox(pdb_structure,options):
     '''
     generates a water box around the provided structure
@@ -71,34 +57,43 @@ def updateMembraneCount(type,membraneFile,topology,fileType="gro"):
       NOTE: expecting membrane file to be a gro file!
     '''
     if type =="POPC":
-        pattern = "POPC?"
+        pattern = "POPC"
 
     if type == "DOPC":
-        pattern = "DOPC?"
+        pattern = "DOPC"
 
     if fileType == "pdb":
         pattern =  "P   %s"%pattern
     else:
         pattern = "%s     P"%type
-    args = ['grep','-P','-c',pattern,membraneFile]
+    args = ['grep','-c',pattern,membraneFile]
 
     numLipids = executeCommand(args).rstrip() #rstrip removes new lines
 
     str = "%s        %s\n"%(type,numLipids)
 
     regex =r"%s        \d*"%type
-    versionFile(topology)
-
-    w= re.compile(regex)
+    #versionFile(topology)
 
     with open(topology,"r") as f:
         topologyStr = f.read()
 
+    #only find the molecules section, extract it and do the update there. Then replace
+    #this section in the topologyStr
+    updateSectionRegex = re.compile(r"(\[ molecules \][\s\S].*#mols\s*)((\D*\s*\d*\n)*)")
+    matches = updateSectionRegex.search(topologyStr)
+    updateSectionStr = matches.group(2)
+
+    w= re.compile(regex)
     m = w.search(topologyStr)
+
     if(m):
-        topologyStr = re.sub(m.group(0),str.rstrip("\n"),topologyStr)
+        newStr = re.sub(m.group(0),str.rstrip("\n"),updateSectionStr)
     else:
-        topologyStr = topologyStr+str
+        newStr = updateSectionStr+str
+
+    newStr = matches.group(1)+newStr
+    topologyStr = re.sub(re.escape(matches.group(0)),newStr,topologyStr)
 
     with open(topology,"w") as f:
         f.write(topologyStr)
@@ -130,7 +125,14 @@ def updateWaterAndIonCount(pdb_structure,topology):
     with open(topology) as f:
         topologyStr = f.read()
 
+    #only find the molecules section, extract it and do the update there. Then replace
+    #this section in the topologyStr
+    updateSectionRegex = re.compile(r"(\[ molecules \][\s\S].*#mols\s*)((\D*\s*\d*\n)*)")
+    matches = updateSectionRegex.search(topologyStr)
+    updateSectionStr = matches.group(2)
+
     logStr =''
+    updateStr = ''
     for elem in toCount:
         #does the element exist?
         if(toCount[elem]>0):
@@ -138,16 +140,21 @@ def updateWaterAndIonCount(pdb_structure,topology):
             name = mappings[elem]
             regex = r"(%s\s+)\d+"%name
             w= re.compile(regex)
-            m = w.search(topologyStr)
+            m = w.search(updateSectionStr)
             if m:
-                topologyStr =  w.sub(newStr,topologyStr)
+                updateStr =  w.sub(newStr,updateSectionStr)
             else: #append a string to the toplogyStr
-                topologyStr = topologyStr+newStr.strip()+"\n"
+                if(updateStr):
+                    updateStr += newStr.strip()+"\n"
+                else:
+                    updateStr += updateSectionStr+newStr.strip()+"\n"
             logStr += newStr
 
+    updateStr = matches.group(1)+updateStr
+    topologyStr = re.sub(re.escape(matches.group(0)),updateStr,topologyStr)
 
     #backup old topology
-    versionFile(topology)
+    #versionFile(topology)
     with open(topology,"w") as f:
         f.write(topologyStr)
 
@@ -195,7 +202,7 @@ def mergePdb(file,fileToMerge):
 
     with open(file,"r") as f:
         lines = f.readlines()
-        toMerge = findAllAtomLines(fileToMerge)
+        toMerge = pdb_util.findAllAtomLines(fileToMerge)
 
 
     #backup the file
@@ -213,9 +220,9 @@ def mergeProteinAndMembranePdb(file,fileToMerge):
     Merges all amino acid lines in file with non protein atoms in filetoMerge
     the box size of fileToMerge is kept and the boxsize of file is discarded
     '''
-    boxSize = findPDBBoxSize(fileToMerge)
-    lines = findAllNonProtein(fileToMerge)
-    toMerge = findAllAminoAcidLines(file)
+    boxSize = pdb_util.findPDBBoxSize(fileToMerge)
+    lines = pdb_util.findAllNonProtein(fileToMerge)
+    toMerge = pdb_util.findAllAminoAcidLines(file)
 
 
     #backup the file
@@ -289,8 +296,6 @@ def executeCommand(args):
 
 
 def executeInteractiveCommand(args,interactions):
-    print args
-    print " ".join(args)
     cmd = "echo -e %s | %s"%(repr(interactions)," ".join(args))
     logCommand(cmd)
     #print cmd
@@ -353,6 +358,7 @@ def logCommand(str):
 def cleanupBackups():
     #cleanup gromacs backups
     cmd = "rm \#*"
+    import os
     os.system(cmd)
 
 
@@ -373,29 +379,44 @@ def generateSequence(pdbFile,mutations=None):
         mutations:string , a comma separated string of mutations ex. I233S,I240S
     '''
 
+    file = open(pdbFile,"r")
+
+    return generateOneLetterSequence(file.read(),mutations)
+
+def generateOneLetterSequence(pdbString,mutationString=None):
+
+    '''given a pdb string generate a seqeunce
+
+    this outputs the sequence in a format suitable for scrwl4
+
+    inputs:
+    pdbFile: file
+    mutationString:string , a comma separated string of mutations ex. I233S,I240S
+'''
+
+    mutations = dict()
+    if(mutationString):
+        mutations = parseMutations(mutationString)
     chains = collections.OrderedDict()
-    mutations = parseMutations(mutations)
-    with open(pdbFile,"r") as f:
-        #for each line that starts with ATOM
-        for line in f:
-            aminoAcidThreeLetterCode = line[17:20]         #read columns 18-20 for res name, pdb column numbering starts with 1!
-            if(line.startswith("ATOM") and isAminoAcid(aminoAcidThreeLetterCode)):
-                sequenceNum = line[22:26].strip() # read columns  23-26 for sequence number, pdb column numbering starts with 1!
-                chain = line[21]   #column 22 = chain , pdb column numbering starts with 1!
+    for line in pdbString.split('\n'):
+        aminoAcidThreeLetterCode = line[17:20]         #read columns 18-20 for res name, pdb column numbering starts with 1!
+        if(line.startswith("ATOM") and pdb_util.isAminoAcid(aminoAcidThreeLetterCode)):
+            sequenceNum = line[22:26].strip() # read columns  23-26 for sequence number, pdb column numbering starts with 1!
+            chain = line[21]   #column 22 = chain , pdb column numbering starts with 1!
 
-                if not chain in chains:
-                    chains[chain] = collections.OrderedDict()   #structure for this dict, sequenceNum,aminoacid
+            if not chain in chains:
+                chains[chain] = collections.OrderedDict()   #structure for this dict, sequenceNum,aminoacid
 
-                if not sequenceNum in chains[chain]:
+            if not sequenceNum in chains[chain]:
 
-                    if sequenceNum in mutations:
-                        chains[chain][sequenceNum] = mutations[sequenceNum]
-                    else:
-                        chains[chain][sequenceNum] = getAminoAcidLongToShort(aminoAcidThreeLetterCode).lower()
+                if sequenceNum in mutations:
+                    chains[chain][sequenceNum] = mutations[sequenceNum]
+                else:
+                    chains[chain][sequenceNum] = pdb_util.getAminoAcidLongToShort(aminoAcidThreeLetterCode).lower()
 
     str= ""
     for sequences in chains.itervalues():
-         str+="".join(sequences.itervalues())
+        str+="".join(sequences.itervalues())
 
     return str
 

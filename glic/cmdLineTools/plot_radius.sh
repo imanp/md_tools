@@ -6,11 +6,11 @@
 #set term postscript enhanced color
 #set output "./plot.eps"
 
-set term pdfcairo enhanced color
-set output outfile
-
-#set term pngcairo transparent font "Arial,24" size 1920,1080
+#set term pdfcairo enhanced color
 #set output outfile
+
+set term pngcairo transparent font "Arial,24" size 1920,1080
+set output outfile
 
 #set term canvas
 #set output "./plot.html"

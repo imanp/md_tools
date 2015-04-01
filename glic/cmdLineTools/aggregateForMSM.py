@@ -28,7 +28,7 @@ if not os.path.exists(xtcDir):
 index=0
 
 for projectDir in args.projects:
-
+    print projectDir
     regex = ".*/(.*)/"
     m = re.match(regex,projectDir)
     projectName = m.group(1)
@@ -44,8 +44,3 @@ for projectDir in args.projects:
         dest="%s/%s_%s"%(destDir,projectName,traj)
         index+=1
         executeCommand(["cp",src,dest])
-
-
-
-
-

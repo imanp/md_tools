@@ -18,7 +18,7 @@ def copyItpFiles():
 
 def injectLinesIntoTop(toplogy="topol.top"):
 #inject some lines into the topology file
-    versionFile(toplogy)
+    #versionFile(toplogy)
     baseDir = os.path.dirname(os.path.realpath(__file__))
 
     with open(toplogy,"rw") as f:

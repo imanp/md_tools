@@ -30,13 +30,14 @@ if not os.path.exists(indexFile):
 
 # cmd="cp %s/conf*0.pdb %s/ref.pdb"%(ProjectDirectories.CONF_DIR,ProjectDirectories.ANALYSIS_FULL_DIR)
 # executeCommand(shlex.split(cmd))
-regex = "(.*)_(\d).*"
+regex = "(.*)_(\d*).*"
 for trajfile in glob.glob("%s/*xtc"%ProjectDirectories.TRAJ_DIR):
     #what index do we have?
     m = re.match(regex,trajfile)
     number = m.group(2)
     tpr = "topol_%s.tpr"%number
     outfile = "%s/%s_%s.xtc"%(ProjectDirectories.ANALYSIS_FULL_DIR,"traj_full",number)
+    print outfile
     args=["trjconv","-center","-pbc","mol","-ur","compact","-s","%s/%s"%(ProjectDirectories.TPR_DIR,tpr),"-f", "%s"%trajfile, "-n", "%s"%indexFile ,"-o", "%s"%outfile]
     options = "24 \n 0"  #indexgroup to center on and extract all atoms
     executeInteractiveCommand(args,options)

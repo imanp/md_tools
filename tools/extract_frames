@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+import re
+import os
+from lib.md_tools import executeCommand
+
+
+'''
+Given an xtc file. Extract n trajectories in intervals of x
+'''
+from argparse import ArgumentParser
+import shlex
+
+__author__ = 'iman'
+
+parser = ArgumentParser(description="""
+If no interval is provided, the interval count will be evenly spaced along the xtc
+If an interval is provided, frames will be fetched at each interval step until the end of the xtc
+""")
+parser.add_argument("xtc",help="Path to xtc file")
+parser.add_argument("tpr",help="Path to tpr file file")
+# parser.add_argument("max",help="maximum number of frames",default=1,type=int)
+parser.add_argument("interval",help="interval in frames",default=1,type=int)
+
+args = parser.parse_args()
+
+interval = 1 # extract each and every frame by default
+
+#call gmxcheck
+# cmd = "gmxcheck -f %s"%args.xtc
+#
+# output = executeCommand(shlex.split(cmd))
+#
+# #parse the number of frames and the timestep
+#
+# regex = "Step\s*(\d*)\s*(\d*)"
+#
+# m = re.match(regex,output)
+#
+# if(m):
+#     numFrames = int(m.group(1))
+#     timestep = int(m.group(2))
+#
+# else:
+#     print "Could not find the number of frames and the timestep for this xtc"
+#     exit(0)
+
+
+
+
+interval = args.interval
+
+
+#try to create a folder for the output
+outputdir = "%s_every_%s_frame"%(args.xtc,interval)
+try:
+    os.mkdir(outputdir)
+
+except OSError as e:
+    print '''could not create folder to save frames in.                  ls -lh
+    Please ensure that you do not have a folder named %s in your current dir, and that the current dir is writable'''%outputdir
+
+
+cmd = "trjconv -f %s -s %s -skip %s -o %s/frame.pdb -sep"%(args.xtc,args.tpr,interval,outputdir)
+executeCommand(shlex.split(cmd))
+
+
+
+

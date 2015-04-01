@@ -17,6 +17,7 @@ from lib.util import *
 
 parser = ArgumentParser()
 parser.add_argument("title",help="Type in the name of the system")
+parser.add_argument("-max",help="Max number of samples to plot",type=int)
 
 args = parser.parse_args()
 
@@ -34,42 +35,47 @@ if not os.path.exists(ProjectDirectories.ANALYSIS_WATER_COUNT_DIR):
 #     sys.exit(0)
 
 index=0
-# for trajfile in glob.glob("%s/*xtc"%ProjectDirectories.ANALYSIS_FULL_DIR):
-#     print "running trajectory %s"%index
-#     gro = "%s/ref.gro"%ProjectDirectories.ANALYSIS_FULL_DIR
-#     xtc = trajfile
-#
-#     datFile ="%s/%s_water_count_%s.dat"%(ProjectDirectories.ANALYSIS_WATER_COUNT_DIR,getProjectName(),index)
-#     #change to hole scripts directory
-#     cmd =  "%s -dispdev text -e %s -args %s %s %s"%(VMD,analysisScript,gro,xtc,datFile)
-#
-#     executeCommand(shlex.split(cmd))
-#     index+=1
+for trajfile in glob.glob("%s/*xtc"%ProjectDirectories.ANALYSIS_FULL_DIR):
+    print "running trajectory %s"%index
+    gro = "%s/ref.gro"%ProjectDirectories.ANALYSIS_FULL_DIR
+    xtc = trajfile
+
+    datFile ="%s/%s_water_count_%s.dat"%(ProjectDirectories.ANALYSIS_WATER_COUNT_DIR,getProjectName(),index)
+    #change to hole scripts directory
+    cmd =  "%s -dispdev text -e %s -args %s %s %s"%(VMD,analysisScript,gro,xtc,datFile)
+
+    # executeCommand(shlex.split(cmd))
+    index+=1
 
 
 
 gnuplotInput = []
 print "Generating plot"
-# gnuplotInput.append('set title "#water between residues 230 and 235 %s"'%args.title)
-gnuplotInput.append(""" set ylabel "#water" font "Arial, 8"  """)
+# gnuplotInput.append('set title "#water between residues 230 and 235 %s"'%args.title)        y
+gnuplotInput.append(""" set ylabel "#water" font "Arial, 6"  """)
 gnuplotInput.append("unset xlabel")
 gnuplotInput.append("set format x '' ")
 gnuplotInput.append("unset key")
-gnuplotInput.append("set term pdf enhanced")
+gnuplotInput.append("set term pdf enhanced font 'Myriad Pro'")
 outfile = "%s/%s_water_count.pdf"%(ProjectDirectories.ANALYSIS_WATER_COUNT_DIR,getProjectName())
+print outfile
 gnuplotInput.append('set output "%s"'%outfile)
 gnuplotInput.append("set yrange [0:60]")
 gnuplotInput.append("set xrange [0:1000]")
 gnuplotInput.append("set ytics 0,10,100 ")
 gnuplotInput.append("""set xtics font "Arial, 8" """)
-gnuplotInput.append("""set ytics font "Arial, 8" """)
+gnuplotInput.append("""set ytics font "Arial, 4" """)
 gnuplotInput.append("set mytics 2")
 gnuplotInput.append("set mxtics 2")
 datFiles = glob.glob("%s/*dat"%ProjectDirectories.ANALYSIS_WATER_COUNT_DIR)
-gnuplotInput.append("""set multiplot layout %s,1 title "%s" """%(len(datFiles),args.title))
+layoutcount = len(datFiles)
+if args.max:
+    layoutcount=args.max
+gnuplotInput.append("""set multiplot layout %s,1 title "%s" """%(layoutcount,args.title))
 
-index = 1
+index = 0
 
+datFiles = sorted(datFiles)
 for f in datFiles:
 
     if len(datFiles) == index:
@@ -78,10 +84,15 @@ for f in datFiles:
         pass
 
 
-
-    gnuplotInput.append('plot "%s" using ($0*0.5):1 with lines smooth csplines'%f)
+    # gnuplotInput.append('set title "%s"'%f)
+    print "plotting %s"%f
+    #gnuplotInput.append('plot "%s" using ($0*0.5):1 with lines smooth csplines'%(f))
+    gnuplotInput.append('plot "%s" using ($0*0.5):1 with lines'%(f))
 
     index+=1
+    print
+    if index==args.max:
+        break
 
 gnuplotInput.append("unset multiplot")
 inp = ";".join(gnuplotInput)

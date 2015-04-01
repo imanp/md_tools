@@ -83,12 +83,15 @@ def save(confs_by_state, states, style, format, outdir):
                 trj[j].save(fn)
 
     elif style == 'tps':
+        #print (confs_by_state)
         for i, trj in enumerate(confs_by_state):
+            #print (trj)
             fn = os.path.join(outdir, 'State%d.%s' % (states[i], format))
             arglib.die_if_path_exists(fn)
 
             logger.info("Saving file: %s" % fn)
-            trj.save(fn)
+            concatenate_trajectories(trj).save(fn)
+            #trj.save(fn)
 
     elif style == 'one':
         fn = os.path.join(outdir, 'Confs.%s' % format)
@@ -167,10 +170,12 @@ def loadFrames(confs_by_state):
             trajNum = m.group(2)
 
             #now find the actual trajectory
+            #TODO also get the regular traj
             originalTraj = "../%s/analysis/full/traj_full_%s.xtc"%(projectName,trajNum)
 
             #load the ref
             ref = "../%s/analysis/full/ref.pdb"%projectName
+            print ("loading %s frame %s"%(originalTraj,frame))
             loadedFrame = md.load_frame(originalTraj,frame,top=ref)
 
             trajFrames.append(loadedFrame)

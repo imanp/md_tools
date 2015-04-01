@@ -24,7 +24,7 @@ def prepare(indexFile,selection,outputDir,suffix,options="11",index=True,fromTra
             executeInteractiveCommand(args,"%s \n q"%selection)
 
 
-    regex = "(.*)_(\d).*"
+    regex = "(.*)_(\d*).*"
     init = True
     for trajfile in glob.glob("%s/*xtc"%fromTrajs):
         #what index do we have?
@@ -63,13 +63,14 @@ if not os.path.exists(ProjectDirectories.ANALYSIS_M2_BACKBONE_DIR):
 
 
 #create index file
+proteinIndexFile = "%s/%s"%(ProjectDirectories.ANALYSIS_PROTEIN_DIR,"index.ndx")
 m2IndexFile = "%s/%s"%(ProjectDirectories.ANALYSIS_M2_DIR,"index.ndx")
 tmdIndexFile = "%s/%s"%(ProjectDirectories.ANALYSIS_TMD_DIR,"index.ndx")
-tmd = "r 197-315"
+tmd = "r 197-217 | r 221-244 | r 254-281 | r 285-314 &! r 243 &! r 277"  #excluding loops!
 m2 = "r 220-245"
 
 if len(glob.glob("%s/*xtc"%ProjectDirectories.ANALYSIS_PROTEIN_DIR))==0:
-    prepare(tmdIndexFile,tmd,ProjectDirectories.ANALYSIS_PROTEIN_DIR,'protein',options="1",index=False,fromTrajs=ProjectDirectories.ANALYSIS_FULL_DIR)
+    prepare(proteinIndexFile,tmd,ProjectDirectories.ANALYSIS_PROTEIN_DIR,'protein',options="1",index=False,fromTrajs=ProjectDirectories.ANALYSIS_FULL_DIR)
 else:
     print "There is already files in directory %s please remove files and rerun script"%ProjectDirectories.ANALYSIS_PROTEIN_DIR
 
@@ -87,7 +88,7 @@ else:
 
 m2BackboneIndexFile = "%s/%s"%(ProjectDirectories.ANALYSIS_M2_BACKBONE_DIR,"index.ndx")
 tmdBackboneIndexFile = "%s/%s"%(ProjectDirectories.ANALYSIS_TMD_BACKBONE_DIR,"index.ndx")
-tmd_backbone = 'r 197-315 & "backb"'
+tmd_backbone = """r 197-217 | r 221-244 | r 254-281 | r 285-314 &! r 243 &! r 277 & "backb" """
 m2_backbone = 'r 220-245 & "backb"'
 
 if len(glob.glob("%s/*xtc"%ProjectDirectories.ANALYSIS_TMD_BACKBONE_DIR))==0:
