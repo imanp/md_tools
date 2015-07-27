@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from argparse import ArgumentParser
 import re
 import shlex
 from lib.md_tools import executeCommand
@@ -7,7 +8,21 @@ from lib.util import *
 
 #TODO add feature to copernicus to fetch files bundled in zip
 
-cmd = "cpcc cd %s"%getEmProjectName()
+parser = ArgumentParser()
+parser.add_argument("step",choices=['em','equi','prod'],help="what type of simulation to fetch confs for")
+args = parser.parse_args()
+
+
+if args.step == 'em':
+    cmd = "cpcc cd %s"%getEmProjectName()
+
+if args.step == 'equi':
+    cmd = "cpcc cd %s"%getEquiProjectName()
+
+if args.step == 'prod':
+    cmd = "cpcc cd %s"%getProjectName()
+
+
 executeCommand(shlex.split(cmd))
 
 
@@ -34,7 +49,16 @@ for line in lines:
         cmd = "cpcc getf mdrun.out.conf[%s]"%index
         res = executeCommand(shlex.split(cmd))
 
-        with open("%s/%s"%(ProjectDirectories.EM_DIR,filename),"w") as f:
+        if args.step == 'em':
+            dir = "%s/%s"%(ProjectDirectories.EM_DIR,filename)
+
+        if args.step == 'equi':
+            cmd = "%s/%s"%(ProjectDirectories.EQUILIBRATION_DIR,filename)
+
+        if args.step == 'prod':
+            cmd = "%s/%s"%(ProjectDirectories.PROD_DIR,filename)
+
+        with open(dir,"w") as f:
             f.write(res)
 
     index+=1
